@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+html, body, #root {
+  background-color: #F6F8F5 !important;
+  color: #1F2937;
+  min-height: 100%;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+.font-mono,
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Global UX rule: subtle placeholders that disappear immediately when clicking/focusing to type */
+input::placeholder,
+textarea::placeholder {
+  color: #9CA3AF !important;
+  opacity: 0.48;
+  transition: opacity 0.08s ease;
+}
+
+input:focus::placeholder,
+textarea:focus::placeholder {
+  color: transparent !important;
+  opacity: 0 !important;
+}
+
+@media print {
+  /* Body-level portal print mode (used by RIDE, Facturación, Cobro, Precuenta, Comandas, Test Print) */
+  body.gastrolab-portal-printing > *:not(#gastrolab-print-root) {
+    display: none !important;
+  }
+  body.gastrolab-portal-printing #gastrolab-print-root {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    overflow: visible !important;
+  }
+
+  /* Legacy inline print areas (CajaModule, ControlInventarioModule, ControlEjecutivoModule) */
+  body:not(.gastrolab-portal-printing) * {
+    visibility: hidden !important;
+  }
+  body:not(.gastrolab-portal-printing) .thermal-print-area,
+  body:not(.gastrolab-portal-printing) .thermal-print-area *,
+  body:not(.gastrolab-portal-printing) .sheet-print-area,
+  body:not(.gastrolab-portal-printing) .sheet-print-area * {
+    visibility: visible !important;
+  }
+  body:not(.gastrolab-portal-printing) .thermal-print-area {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 80mm !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 8px !important;
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  body:not(.gastrolab-portal-printing) .sheet-print-area {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 16px !important;
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Thermal auto-cut & paper feed separation rules for Comandas, Tickets y RIDE */
+  .gastrolab-thermal-autocut {
+    page-break-after: always !important;
+    break-after: page !important;
+    padding-bottom: 10mm !important;
+  }
+  .gastrolab-cut-feed-line {
+    border-top: 1px dashed #9ca3af !important;
+    margin-top: 6mm !important;
+    padding-top: 2mm !important;
+    font-size: 8px !important;
+    text-align: center !important;
+    color: #6b7280 !important;
+  }
+}
+

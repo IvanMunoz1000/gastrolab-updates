@@ -1,0 +1,20 @@
+{
+  "name": "gastrolab-whatsapp-backend",
+  "version": "1.0.0",
+  "description": "Middleware Node.js/Express para WhatsApp Business Cloud API, Sinqro Delivery, Deuna! y GASTROLAB POS",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}

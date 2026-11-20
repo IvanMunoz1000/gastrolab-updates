@@ -1,0 +1,7 @@
+{
+  "name": "GASTROLAB POS",
+  "description": "Professional culinary and restaurant POS system with role-based access control, 15-day trial countdown, and multi-device license activation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

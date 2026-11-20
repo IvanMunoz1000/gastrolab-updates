@@ -1,0 +1,152 @@
+{
+  "files": {
+    "apple-touch-icon.png": {
+      "sha256": "cce82ebf73279f32216d90fcb3fb89173a36952438011b7facf0a770b41292a2",
+      "size": 27470
+    },
+    "assets/ClientesModule-D56U8vh5.js": {
+      "sha256": "eb3f9356127d1b2991e8f0b0a6680812563cb5045d5f255bea1784945df42ad8",
+      "size": 14142
+    },
+    "assets/ControlEjecutivoModule-CyMqUGFm.js": {
+      "sha256": "1442641aaf24a28ff7214c85c9d125c640611155b2218e6a9c780621c5f1b5ce",
+      "size": 1105908
+    },
+    "assets/ControlInventarioModule-BPouUEhb.js": {
+      "sha256": "ca1fc6ecf72c0d1e7fc86c698d28222c4dc9da0582e1515bbd8c0586fb99d868",
+      "size": 27596
+    },
+    "assets/ControlMermasModule-Dhb-ZGL_.js": {
+      "sha256": "b0bbfb8e906903692d62c0e65b4f004b3b2b5843109ad80d5396106b6c2dec40",
+      "size": 24643
+    },
+    "assets/FacturacionModule-lbLXyotJ.js": {
+      "sha256": "1300f51f33259742ca668acb511c2f785a830b173fc00697a226891ee7a5d444",
+      "size": 38109
+    },
+    "assets/InventarioModule-CYQoTCCr.js": {
+      "sha256": "ce8d77766f9d2dc95c0a8a8b63d9a208ce317beec2f38c46ba86d8090b6cd1d8",
+      "size": 61311
+    },
+    "assets/KardexModule-Bw41EaZn.js": {
+      "sha256": "afe584c66400536a68fc2ab4f53471ff6a714675e978b912dfc9e494b35ca3e6",
+      "size": 20090
+    },
+    "assets/ManualKardexMovementModal-DuI1ETPo.js": {
+      "sha256": "0caa54aaac63fa20c77fbcc6dd05ab1352d61e92f21bc552b71be6337124c9da",
+      "size": 12052
+    },
+    "assets/MenajeModule-DkJDeatj.js": {
+      "sha256": "7a77ab40df49a8e50492e86d7cefe70670a09e0d90ed057c26a61e2b1a4a38a1",
+      "size": 25841
+    },
+    "assets/ProveedoresModule-CjAYNPHo.js": {
+      "sha256": "afed0e2bb9444088b4f1ab1942d9f0c746aa2f33d312c29797f1c4e67f6d31de",
+      "size": 21223
+    },
+    "assets/PurchasesModule-MOD1hmXR.js": {
+      "sha256": "074205ae0bfd9564f3eba13d05c64cba418f8fe5a9d02a4d653705ae6bad8808",
+      "size": 34182
+    },
+    "assets/RecetasModule-C-PrVHAD.js": {
+      "sha256": "148bd5b70f5907da4815c4ed5e80b79008254cde5809deed540770f57499b36c",
+      "size": 32783
+    },
+    "assets/ReportesModule-BHhqHVzE.js": {
+      "sha256": "439620bf87ef7d528d41fc94ae6586c0ed4438d580cdaed9506235551c55bc08",
+      "size": 502458
+    },
+    "assets/UsuariosPermisosModule-CDSU33qo.js": {
+      "sha256": "81d1f6911e03b1cef42a2f8968a66c40ecfdf272d3fca83157b31167987c8507",
+      "size": 25107
+    },
+    "assets/WhatsAppModule-C-Ep0JiJ.js": {
+      "sha256": "ce74531b208dc5074e77fc311a43aa334231e2425f59ad887e6ba9b37db6b2e7",
+      "size": 54677
+    },
+    "assets/aistudio/Screenshot_20261109_081944_40c3596b.jpg": {
+      "sha256": "40c3596b81422340c70397bd993558e25d4ae08626f494f56d2a4114c8c15ba2",
+      "size": 221598
+    },
+    "assets/check-0tcAjeVk.js": {
+      "sha256": "8e38aec7e668e586a17be86d6a1ea993749ce2507cb4c0c7a89e62a8fcea95ce",
+      "size": 699434
+    },
+    "assets/clipboard-minus-DOI1qebC.js": {
+      "sha256": "d75878f6254a5dca4c1ded0dc92083dade3a9c96f0c86033473edf8fa514d981",
+      "size": 287
+    },
+    "assets/gastrolab_fhd.jpg": {
+      "sha256": "da8e036b7896bfb23cbde63bd3df026c8c3ec88add20afb847e6df75972984e1",
+      "size": 43200
+    },
+    "assets/holy_roll_logo.png": {
+      "sha256": "c547d6682dd7422f63b3aebcf9ea68a8a98bfd2963f7695d68bc922ac5966f1a",
+      "size": 38696
+    },
+    "assets/index-D3f4i32m.js": {
+      "sha256": "6b4e1f00acf97071a53c478a1666f40a8b72a6ab9a17b2d833c09389e8df833b",
+      "size": 871594
+    },
+    "assets/index-DL-p3wNC.css": {
+      "sha256": "7cce52821ac7109927d146b081dbf39f97ecd897c4c2bc97b5b73f9d8709bfef",
+      "size": 97346
+    },
+    "assets/map-pin-ChYIokGX.js": {
+      "sha256": "85d500a9c7666dbc5df6a55174bf67b3ca47ad25e880ec1e7c700766031ffab1",
+      "size": 248
+    },
+    "assets/octagon-alert-CmbPhTdT.js": {
+      "sha256": "d78375ce2f78fef5f5996ab342a145fcf1862ddef018861dd44e7dfa259e1e57",
+      "size": 418
+    },
+    "assets/trending-down-BSTMC4W6.js": {
+      "sha256": "6653db2a01638c12280aad5651ac86adefe9dd6a71015674355059da1b98e094",
+      "size": 167
+    },
+    "assets/web-BIgsEjrr.js": {
+      "sha256": "97149d7fafc9309bad3416e28da8c26018ff5b3dce532e563f21efb0c61719f7",
+      "size": 5092
+    },
+    "assets/web-CtlsKURc.js": {
+      "sha256": "f1f41152ab6c97f77599f81cb2c88272ab5357d04335f8cd6097c7d316ca6bfc",
+      "size": 845
+    },
+    "assets/xlsx-CVEVf5xd.js": {
+      "sha256": "4ff8b0978684c79042a334ccb29d852ff6c74d1baeebf8b55189af121062ecd3",
+      "size": 280679
+    },
+    "cordova.js": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    "cordova_plugins.js": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    "index.html": {
+      "sha256": "f7ef22530691f6154efba8aa76e8bc458a8cd0389bb41ebc539d1d8c010bcb9b",
+      "size": 1649
+    },
+    "manifest.json": {
+      "sha256": "121a23f64130157809822139a00d4737faf5d88e863881a77bd72bbff5e83e58",
+      "size": 862
+    },
+    "pwa-192x192.png": {
+      "sha256": "f56aa3e62375e5a4fade37f28dda417f7cdf5d5fbff57663d30a202d088e990b",
+      "size": 29874
+    },
+    "pwa-512x512.png": {
+      "sha256": "091c5056c28ef5f87079662eb651925754cea0c0a0dcf1e986b0c8fdb1d0bb33",
+      "size": 127817
+    },
+    "pwa-maskable-512x512.png": {
+      "sha256": "091c5056c28ef5f87079662eb651925754cea0c0a0dcf1e986b0c8fdb1d0bb33",
+      "size": 127817
+    },
+    "sw.js": {
+      "sha256": "c4a99c1567cbe58044b2f8bac9d0066555220e08ddbc3bf663046aa7326002ac",
+      "size": 1913
+    }
+  }
+}

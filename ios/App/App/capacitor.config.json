@@ -1,0 +1,15 @@
+{
+	"appId": "com.gastrolab.pos",
+	"appName": "GASTROLAB",
+	"webDir": "dist",
+	"plugins": {
+		"CapacitorUpdater": {
+			"autoUpdate": false,
+			"appReadyTimeout": 20000
+		}
+	},
+	"packageClassList": [
+		"AppPlugin",
+		"CapacitorUpdaterPlugin"
+	]
+}

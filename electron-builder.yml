@@ -1,0 +1,24 @@
+appId: com.gastrolab.pos
+productName: GASTROLAB
+directories:
+  output: release/windows
+  buildResources: release-assets
+files:
+  - dist/**/*
+  - electron/**/*
+  - package.json
+artifactName: 'GASTROLAB-${version}-${arch}.${ext}'
+win:
+  icon: release-assets/icon.ico
+  target: nsis
+nsis:
+  oneClick: false
+  perMachine: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  installerIcon: release-assets/icon.ico
+  uninstallerIcon: release-assets/icon.ico
+  deleteAppDataOnUninstall: false
+publish:
+  provider: generic
+  url: https://northern-forge-7wpgt.web.app/actualizaciones/windows/

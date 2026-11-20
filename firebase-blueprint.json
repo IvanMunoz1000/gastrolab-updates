@@ -1,0 +1,369 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Staff profile stored in Firestore with role-based access control.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string" }
+      },
+      "required": ["uid", "name", "email", "role"]
+    },
+    "License": {
+      "title": "License Code",
+      "description": "8-character license activation codes for up to 4 devices.",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "isUsed": { "type": "boolean" },
+        "status": { "type": "string" }
+      },
+      "required": ["code", "isUsed", "status"]
+    },
+    "SystemLicense": {
+      "title": "System License State",
+      "description": "Global restaurant license status and 15-day trial countdown.",
+      "type": "object",
+      "properties": {
+        "status": { "type": "string" }
+      }
+    },
+    "Product": {
+      "title": "Menu Product (Carta)",
+      "description": "Product item for sale on the POS Menu / Carta.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "category": { "type": "string" }
+      },
+      "required": ["name", "price", "category"]
+    },
+    "Promotion": {
+      "title": "Menu Promotion (Promoción)",
+      "description": "Discount or 2x1/3x2 promotion configured under Carta and visible in Mesas.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "type": { "type": "string", "enum": ["descuento", "multi_compra"] },
+        "promoPrice": { "type": "number" },
+        "productIds": { "type": "array" },
+        "daysOfWeek": { "type": "array" },
+        "active": { "type": "boolean" }
+      },
+      "required": ["name", "type", "promoPrice"]
+    },
+    "RestaurantTable": {
+      "title": "Restaurant Table (Mesa)",
+      "description": "Dining tables in POS floor plan with occupancy status, custom shape, coordinates, dimensions, and unified reception groups.",
+      "type": "object",
+      "properties": {
+        "tableNumber": { "type": "integer" },
+        "status": { "type": "string" },
+        "shape": { "type": "string", "enum": ["cuadrada", "redonda", "rectangular", "barra"] },
+        "posX": { "type": "number" },
+        "posY": { "type": "number" },
+        "width": { "type": "number" },
+        "height": { "type": "number" },
+        "mergedTables": { "type": "array" },
+        "mergedMasterId": { "type": "string" },
+        "mergedTableNumbers": { "type": "array" }
+      },
+      "required": ["tableNumber", "status"]
+    },
+    "Order": {
+      "title": "Order Ticket (Comanda)",
+      "description": "Table order with items, notes, and kitchen status.",
+      "type": "object",
+      "properties": {
+        "tableNumber": { "type": "integer" },
+        "items": { "type": "array" },
+        "status": { "type": "string" }
+      },
+      "required": ["tableNumber", "items", "status"]
+    },
+    "InventoryItem": {
+      "title": "Inventory Item (Existencias)",
+      "description": "Raw ingredients and stock items with weighted average cost and unit calculations.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "unit": { "type": "string", "enum": ["kg", "lt", "unidad"] },
+        "currentStock": { "type": "number" },
+        "minStock": { "type": "number" },
+        "cost": { "type": "number" },
+        "costPerBaseUnit": { "type": "number" },
+        "hasPendingWaste": { "type": "boolean" },
+        "pendingWasteQty": { "type": "number" },
+        "category": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["name", "unit", "currentStock", "cost"]
+    },
+    "KardexEntry": {
+      "title": "Kardex Movement (Movimiento)",
+      "description": "Inventory movement ledger entry tracking inputs, outputs, and running balance.",
+      "type": "object",
+      "properties": {
+        "itemId": { "type": "string" },
+        "itemName": { "type": "string" },
+        "movementType": { "type": "string", "enum": ["Entrada", "Salida", "Salida por Baja", "Ajuste"] },
+        "quantity": { "type": "number" },
+        "unit": { "type": "string" },
+        "unitCost": { "type": "number" },
+        "totalCost": { "type": "number" },
+        "balanceStock": { "type": "number" },
+        "reference": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["itemId", "itemName", "movementType", "quantity", "balanceStock"]
+    },
+    "PurchaseInvoice": {
+      "title": "Purchase Invoice (Factura de Compra)",
+      "description": "Supplier purchase invoice with waste evaluation and weighted average cost calculation.",
+      "type": "object",
+      "properties": {
+        "invoiceNumber": { "type": "string" },
+        "provider": { "type": "string" },
+        "date": { "type": "string" },
+        "items": { "type": "array" },
+        "totalAmount": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["provider", "date", "items", "totalAmount"]
+    },
+    "WasteRecord": {
+      "title": "Waste Control Record (Control de Mermas)",
+      "description": "Waste records tracking initial gross weight, manual final weight, yield, and responsible staff.",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string" },
+        "itemId": { "type": "string" },
+        "productName": { "type": "string" },
+        "unit": { "type": "string" },
+        "initialWeight": { "type": "number" },
+        "finalWeight": { "type": "number" },
+        "wasteAmount": { "type": "number" },
+        "wastePercentage": { "type": "number" },
+        "usableQuantity": { "type": "number" },
+        "responsible": { "type": "string" },
+        "wasteReason": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "processed"] }
+      },
+      "required": ["date", "productName", "unit", "initialWeight", "status"]
+    },
+    "Subrecipe": {
+      "title": "Sub-Recipe Preparation (Subreceta)",
+      "description": "Culinary preparation bases with ingredient weights in grams/ml and cost per gram/ml.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "yieldWeight": { "type": "number" },
+        "yieldUnit": { "type": "string" },
+        "ingredients": { "type": "array" },
+        "costPerGramOrMl": { "type": "number" }
+      },
+      "required": ["name", "yieldWeight", "ingredients", "costPerGramOrMl"]
+    },
+    "Recipe": {
+      "title": "Main Recipe (Receta Madre)",
+      "description": "Main dish recipes combining raw ingredients and sub-recipes, calculating real cost and Food Cost % suggested price.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "portions": { "type": "number" },
+        "ingredients": { "type": "array" },
+        "realCost": { "type": "number" },
+        "suggestedPrice": { "type": "number" },
+        "targetFoodCostPercentage": { "type": "number" }
+      },
+      "required": ["name", "ingredients", "realCost", "suggestedPrice"]
+    },
+    "Supplier": {
+      "title": "Supplier Record (Proveedor)",
+      "description": "Registered vendors for purchase invoice dropdown selector.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "category": { "type": "string" }
+      },
+      "required": ["name"]
+    },
+    "CashRegister": {
+      "title": "Cash Register (Caja)",
+      "description": "POS cash registers opened independently with initial cash fund and status.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "status": { "type": "string", "enum": ["open", "closed"] },
+        "initialCash": { "type": "number" }
+      },
+      "required": ["name", "status"]
+    },
+    "CashShift": {
+      "title": "Cash Shift (Turno de Caja)",
+      "description": "Shift logs with partial audit (arqueo) history and closing reconciliation.",
+      "type": "object",
+      "properties": {
+        "registerId": { "type": "string" },
+        "status": { "type": "string", "enum": ["open", "closed"] },
+        "initialCash": { "type": "number" },
+        "expectedCash": { "type": "number" }
+      },
+      "required": ["registerId", "status", "initialCash"]
+    },
+    "Customer": {
+      "title": "Customer Record (Cliente)",
+      "description": "Registered restaurant customer profile for billing and loyalty.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "identification": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" }
+      },
+      "required": ["name"]
+    },
+    "ElectronicInvoice": {
+      "title": "Electronic Invoice SRI",
+      "description": "SRI electronic invoice document with offline sync queue status.",
+      "type": "object",
+      "properties": {
+        "invoiceNumber": { "type": "string" },
+        "status": { "type": "string" },
+        "total": { "type": "number" }
+      },
+      "required": ["invoiceNumber", "status", "total"]
+    },
+    "InventoryAudit": {
+      "title": "Physical Inventory Audit",
+      "description": "Physical stock count audit report saved by Control de Inventario.",
+      "type": "object",
+      "properties": {
+        "performedBy": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["createdAt"]
+    },
+    "ClientOverride": {
+      "title": "Isolated Client Override",
+      "description": "Per-store customization applied by Creator Master Panel without affecting other locals.",
+      "type": "object",
+      "properties": {
+        "storeId": { "type": "string" },
+        "storeName": { "type": "string" },
+        "customTag": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["storeId", "updatedAt"]
+    },
+    "SystemSettings": {
+      "title": "General System Settings",
+      "description": "Store branding, IVA, Food Cost %, printers, and branch names.",
+      "type": "object",
+      "properties": {
+        "localName": { "type": "string" },
+        "slogan": { "type": "string" },
+        "ivaPercentage": { "type": "number" },
+        "foodCostPercentage": { "type": "number" }
+      }
+    },
+    "MonthlyExpense": {
+      "title": "Monthly Expense (Gasto Mensual)",
+      "description": "Fixed and variable monthly restaurant expenses for break-even calculation.",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["fijo", "variable"] },
+        "name": { "type": "string" },
+        "amount": { "type": "number" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["type", "name", "amount", "createdAt"]
+    },
+    "PayrollEmployee": {
+      "title": "Payroll Employee (Colaborador Nómina)",
+      "description": "Staff payroll record with nominal salary, IESS 9.45%, discounts, and net pay.",
+      "type": "object",
+      "properties": {
+        "collaborator": { "type": "string" },
+        "position": { "type": "string" },
+        "nominalSalary": { "type": "number" },
+        "hasIess": { "type": "string", "enum": ["SI", "NO"] },
+        "iessContribution": { "type": "number" },
+        "discountAmount": { "type": "number" },
+        "discountReason": { "type": "string" },
+        "netPay": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["collaborator", "position", "nominalSalary", "hasIess", "netPay"]
+    },
+    "WhatsAppChat": {
+      "title": "WhatsApp Inbox Conversation",
+      "description": "WhatsApp Business chat thread with bot/customer/human agent messages.",
+      "type": "object",
+      "properties": {
+        "customerName": { "type": "string" },
+        "phone": { "type": "string" },
+        "lastMessage": { "type": "string" },
+        "lastMessageAt": { "type": "string" },
+        "unreadCount": { "type": "integer" },
+        "status": { "type": "string", "enum": ["bot", "humano", "cerrado"] },
+        "messages": { "type": "array" }
+      },
+      "required": ["customerName", "phone", "status", "messages"]
+    },
+    "WhatsAppOrder": {
+      "title": "WhatsApp Automated Order",
+      "description": "Automated WhatsApp delivery order with Sinqro dispatch, transfer verification, and accounting.",
+      "type": "object",
+      "properties": {
+        "externalReference": { "type": "string" },
+        "customerFirstName": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "total": { "type": "number" },
+        "paymentMethod": { "type": "string", "enum": ["DEUNA", "TRANSFER", "CASH"] },
+        "paymentStatus": { "type": "string", "enum": ["PENDING", "PAID"] },
+        "status": { "type": "string", "enum": ["Pendiente de Pago", "Pagado", "Enviado a Sinqro", "Confirmado"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["externalReference", "customerFirstName", "total", "paymentMethod", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": { "schema": "UserProfile", "description": "Users collection." },
+    "/login_profiles/{profileId}": { "schema": "UserProfile", "description": "Non-sensitive user display profiles for POS shift selector." },
+    "/licenses/{licenseCode}": { "schema": "License", "description": "Licenses collection." },
+    "/system/{settingId}": { "schema": "SystemLicense", "description": "System settings." },
+    "/products/{productId}": { "schema": "Product", "description": "Products." },
+    "/promotions/{promoId}": { "schema": "Promotion", "description": "Active and scheduled Carta promotions." },
+    "/tables/{tableId}": { "schema": "RestaurantTable", "description": "Tables." },
+    "/orders/{orderId}": { "schema": "Order", "description": "Orders." },
+    "/inventory/{itemId}": { "schema": "InventoryItem", "description": "Raw materials and inventory stock." },
+    "/kardex/{entryId}": { "schema": "KardexEntry", "description": "Kardex movement ledger." },
+    "/purchases/{purchaseId}": { "schema": "PurchaseInvoice", "description": "Purchase invoices." },
+    "/waste_records/{recordId}": { "schema": "WasteRecord", "description": "Waste and yield tracking records." },
+    "/subrecipes/{subrecipeId}": { "schema": "Subrecipe", "description": "Sub-recipes and base preparations." },
+    "/recipes/{recipeId}": { "schema": "Recipe", "description": "Main recipes for dishes." },
+    "/suppliers/{supplierId}": { "schema": "Supplier", "description": "Registered supplier vendors." },
+    "/cash_registers/{registerId}": { "schema": "CashRegister", "description": "Cash registers." },
+    "/cash_shifts/{shiftId}": { "schema": "CashShift", "description": "Cash shifts and audits." },
+    "/cash_movements/{movementId}": { "schema": "CashShift", "description": "Cash movements." },
+    "/clients/{clientId}": { "schema": "Customer", "description": "Client billing directory." },
+    "/customers/{customerId}": { "schema": "Customer", "description": "Customer directory." },
+    "/electronic_invoices/{invoiceId}": { "schema": "ElectronicInvoice", "description": "SRI electronic invoices." },
+    "/inventory_audits/{auditId}": { "schema": "InventoryAudit", "description": "Physical inventory audit reports." },
+    "/settings/{settingId}": { "schema": "SystemSettings", "description": "General system settings." },
+    "/client_overrides/{overrideId}": { "schema": "ClientOverride", "description": "Isolated per-client overrides." },
+    "/monthly_expenses/{expenseId}": { "schema": "MonthlyExpense", "description": "Fixed and variable monthly expenses." },
+    "/payroll_employees/{employeeId}": { "schema": "PayrollEmployee", "description": "Staff payroll records." },
+    "/whatsapp_chats/{chatId}": { "schema": "WhatsAppChat", "description": "WhatsApp inbox conversations." },
+    "/whatsapp_orders/{orderId}": { "schema": "WhatsAppOrder", "description": "WhatsApp automated orders and transfer verifications." },
+    "/sales/{saleId}": { "schema": "Order", "description": "Sales records collection." },
+    "/providers/{providerId}": { "schema": "Supplier", "description": "Providers directory collection." },
+    "/waste/{wasteId}": { "schema": "WasteRecord", "description": "Waste control collection." }
+  }
+}

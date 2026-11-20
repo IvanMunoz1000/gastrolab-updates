@@ -1,0 +1,237 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // User collection rules
+    match /users/{userId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // Public display cards for user selection screen (no passwords/PII)
+    match /login_profiles/{profileId} {
+      allow get, list: if true;
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // License codes collection rules (200 unique 8-character codes)
+    match /licenses/{licenseCode} {
+      allow get, list: if true;
+      allow create, update: if isSignedIn();
+      allow delete: if false;
+    }
+
+    // Global system settings / license state document
+    match /system/{settingId} {
+      allow get, list: if true;
+      allow create, update: if isSignedIn() || settingId == 'license' || settingId == 'connection_test';
+      allow delete: if false;
+    }
+
+    // Products / Carta collection rules
+    match /products/{productId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // Promotions (Carta -> Promociones) collection rules
+    match /promotions/{promoId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // Tables collection rules
+    match /tables/{tableId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // Orders collection rules
+    match /orders/{orderId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // Inventory collection rules
+    match /inventory/{itemId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // Kardex movements collection rules
+    match /kardex/{entryId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // Purchases / Invoices collection rules
+    match /purchases/{purchaseId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // Waste control records (Control de Mermas)
+    match /waste_records/{recordId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // Sub-recipes (Subrecetas)
+    match /subrecipes/{subrecipeId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // Recipes (Recetas Madres)
+    match /recipes/{recipeId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // Suppliers (Proveedores)
+    match /suppliers/{supplierId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // Cash registers (Caja y Turnos)
+    match /cash_registers/{registerId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // Cash shifts (Turnos de caja y arqueos)
+    match /cash_shifts/{shiftId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // Cash movements (Ingresos / Egresos)
+    match /cash_movements/{movementId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // Table reservations (Reservas)
+    match /reservations/{reservationId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // Clients directory (Clientes)
+    match /clients/{clientId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // Customers directory (ClientesModule)
+    match /customers/{customerId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // Invoices (Facturación electrónica)
+    match /invoices/{invoiceId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // Equipment and tableware (Menaje & Equipos)
+    match /menaje/{itemId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    match /equipment/{itemId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // Electronic invoices (Facturación Electrónica SRI)
+    match /electronic_invoices/{invoiceId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // Physical inventory counts & audits (Control de Inventario)
+    match /inventory_audits/{auditId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // App general settings (Configuración)
+    match /settings/{settingId} {
+      allow get, list: if true;
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // Isolated per-client Creator overrides (Creador -> personalización por cliente)
+    match /client_overrides/{overrideId} {
+      allow get, list: if isSignedIn();
+      allow create, update: if isSignedIn();
+      allow delete: if false;
+    }
+
+    // Executive Control: Monthly Fixed & Variable Expenses (Control Ejecutivo -> Gastos Mensuales)
+    match /monthly_expenses/{expenseId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn() && isValidId(expenseId);
+    }
+
+    // Executive Control: Staff & Payroll (Control Ejecutivo -> Gestión de Personal y Nómina)
+    match /payroll_employees/{employeeId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn() && isValidId(employeeId);
+    }
+
+    // WhatsApp Business Inbox Chats
+    match /whatsapp_chats/{chatId} {
+      allow list: if isSignedIn();
+      allow get, create, update, delete: if isSignedIn() && isValidId(chatId);
+    }
+
+    // WhatsApp Automated Orders & Transfer Verifications
+    match /whatsapp_orders/{orderId} {
+      allow list: if isSignedIn();
+      allow get, create, update, delete: if isSignedIn() && isValidId(orderId);
+    }
+
+    // Legacy / Factory Reset companion collections (sales, providers, waste)
+    match /sales/{saleId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    match /providers/{providerId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+
+    match /waste/{wasteId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn();
+    }
+  }
+}

@@ -1,0 +1,53 @@
+name: Verify GASTROLAB production OTA signature and delivery
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/verify-ota-production.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ota-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check production manifest, signature, hash and assets
+        env:
+          OTA_PUBLIC_DER: MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEApdjB8Qo9qWL/8suNWJTEG06RzH7HZ6Tbh2rZ4HlLrsakELAqT5ZBJ4Cavpply/uKkmoop4ScfpZAYYhamlFI4Yw6n54TI1Kn2J6lGkTLDUrNbRUovI/+aY9fsn3+oz9sWyEe3LU38N4a8vapwue0fP+uJrI9yxzoPxFYMxU86/Z6Cpb3bfVvDjcB3cBooW7owrZuDXf1mB0hVLaE8qZYFOb5oPzG47x9en7UCnaFDJZZxNhXiUyuLRxTB8wmYjXz0zV0eMvfMFVWtcJd6HOcbOTOVX2GICM62erVN6caxI2YCVxMyWcBFlUgJJrvQVP0CDvlYPOkDmM5IkCpkwnA5nH0KEz3WbhO5dzLtQqWZguSc7YvKgGr2m5/nxfgn0SlbG2izGcOTKUUfEeoRJP0sOl+RLXPO0ppo/okzE3jOE3Pmemkp7iRa+DnlU3LuM4Qj34miU1EFIaxaVi8rzke+LCYN/JO31FqvNlbaARo3SlPgqV1JO7DUheW3DLayjWBAgMBAAE=
+        run: |
+          node --input-type=module <<'NODE'
+          import { createHash, createPublicKey, verify } from 'node:crypto';
+          import { gunzipSync } from 'node:zlib';
+          const url = 'https://gastrolab-sri-backend.onrender.com/api/ota';
+          let result;
+          for(let attempt = 1; attempt <= 16; attempt++) {
+            try {
+              const res = await fetch(url + '/manifest', { signal: AbortSignal.timeout(30000) });
+              if(!res.ok) throw new Error('HTTP ' + res.status);
+              const m = await res.json();
+              if(m.schema !== 1 || !/^2\\.3\\.10$/.test(m.version) ||
+                  !/^[0-9a-f-]{36}$/i.test(m.buildId)) throw new Error('Unexpected OTA manifest');
+              const payload = Buffer.from('GASTROLAB-OTA-V1\\n'+m.version+'\\n'+m.buildId+'\\n'+m.sha256+'\\n'+m.bytes+'\\n');
+              const key = createPublicKey({key:Buffer.from(process.env.OTA_PUBLIC_DER, 'base64'),format:'der',type:'spki'});
+              if(!verify('RSA-SHA256',payload,key,Buffer.from(m.signature,'base64'))) throw new Error('Signature invalid');
+              const bundleRes = await fetch(url+'/bundle/'+m.buildId,{signal:AbortSignal.timeout(60000)});
+              if(!bundleRes.ok) throw new Error('Bundle HTTP '+bundleRes.status);
+              const blob = Buffer.from(await bundleRes.arrayBuffer());
+              if(blob.byteLength !== m.bytes || createHash('sha256').update(blob).digest('hex') !== m.sha256) throw new Error('Bundle SHA256 mismatch');
+              const parsed=JSON.parse(gunzipSync(blob).toString('utf8'));
+              const paths = new Set(parsed.files.map(f=>f.path));
+              if(parsed.version!==m.version || parsed.buildId!==m.buildId ||
+                 !paths.has('index.html') || !paths.has('app-version.json')) throw new Error('Missing OTA files');
+              result={version:m.version,buildId:m.buildId,files:paths.size,bytes:blob.byteLength,signature:'RSA verified'};
+              break;
+            } catch(error) {
+              if(attempt === 16) throw error;
+              console.log('Attempt '+attempt+' OTA unavailable: '+error.message);
+              await new Promise(resolve=>setTimeout(resolve,15000));
+            }
+          }
+          console.log('GASTROLAB_OTA_PRODUCTION_VERIFIED '+JSON.stringify(result));
+          NODE

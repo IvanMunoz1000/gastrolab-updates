@@ -2,7 +2,7 @@ name: Publish GASTROLAB 2.3.13 verified installers
 on:
   push:
     branches: [main]
-    paths: ['.github/workflows/publish-v2-3-12.yml']
+    paths: ['.github/workflows/publish-v2-3-13.yml']
 permissions:
   contents: write
 jobs:

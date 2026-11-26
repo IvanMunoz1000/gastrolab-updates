@@ -336,91 +336,6 @@ export const WhatsAppModule: React.FC = () => {
     );
   };
 
-  // Action: Simulate incoming WhatsApp order + chat
-  const handleSimulateIncomingOrder = async () => {
-    const suffix = Math.floor(1000 + Math.random() * 8999);
-    const orderId = `wa_ord_${suffix}`;
-    const chatId = `wa_chat_${suffix}`;
-    const extRef = `WA-${suffix}`;
-    const fee = Number(envConfig.DELIVERY_FEE || 2.5);
-    const subtotal = 18.0;
-    const tax = Number((subtotal * 0.15).toFixed(2));
-    const total = Number((subtotal + tax + fee).toFixed(2));
-    const nowIso = new Date().toISOString();
-
-    const newOrder: WhatsAppOrderRecord = {
-      id: orderId,
-      externalReference: extRef,
-      customerFirstName: 'Diego',
-      customerLastName: 'Villacís',
-      customerTaxId: '1720445511',
-      customerEmail: 'diego.villacis@correo.ec',
-      customerPhone: `+59399${suffix}12`,
-      customerAddress: 'Av. 6 de Diciembre y Orellana, Edif. Torre Sur',
-      location: { lat: -0.1972, lng: -78.4855 },
-      items: [
-        {
-          menuItemId: 'prod_tempura_roll',
-          name: 'Tempura Maki Especial',
-          quantity: 1,
-          unitPrice: 16.5,
-          modifiers: [{ modifierId: 'mod_aguacate', name: 'Aguacate Extra', price: 1.5 }],
-          ingredients: ['Langostino', 'Queso crema', 'Salsa anguila'],
-          comment: 'Tocar timbre 4B',
-        },
-      ],
-      subtotal,
-      tax,
-      deliveryFee: fee,
-      total,
-      paymentMethod: 'TRANSFER',
-      paymentStatus: 'PENDING',
-      status: 'Pendiente de Pago',
-      transferBank: 'Banco del Pacífico',
-      transferReference: `PAC-${suffix}09`,
-      transferReceiptUrl: `comprobante-pacifico-${suffix}`,
-      transferVerified: false,
-      retryCount: 0,
-      branch: activeBranch,
-      createdAt: nowIso,
-    };
-
-    const newChat: WhatsAppChat = {
-      id: chatId,
-      customerName: 'Diego Villacís',
-      phone: newOrder.customerPhone,
-      lastMessage: `Nuevo pedido ${extRef} recibido con comprobante de transferencia.`,
-      lastMessageAt: nowIso,
-      unreadCount: 1,
-      status: 'bot',
-      linkedOrderId: orderId,
-      branch: activeBranch,
-      messages: [
-        {
-          id: `msg_${suffix}_1`,
-          sender: 'customer',
-          senderName: 'Diego Villacís',
-          text: 'Hola! Quiero 1 Tempura Maki Especial con Aguacate Extra. Envío a Av. 6 de Diciembre y Orellana.',
-          timestamp: nowIso,
-        },
-        {
-          id: `msg_${suffix}_2`,
-          sender: 'customer',
-          senderName: 'Diego Villacís',
-          text: `Aquí está mi transferencia Banco del Pacífico ref PAC-${suffix}09 por $${total.toFixed(2)}.`,
-          timestamp: nowIso,
-          attachmentType: 'receipt',
-          attachmentUrl: `PAC-${suffix}09 · Banco del Pacífico`,
-        },
-      ],
-    };
-
-    await commitOfflineSafe(setDoc(doc(db, 'whatsapp_orders', orderId), newOrder), 'sim_wa_order');
-    await commitOfflineSafe(setDoc(doc(db, 'whatsapp_chats', chatId), newChat), 'sim_wa_chat');
-    setSelectedChatId(chatId);
-    showToast('success', `Pedido ${extRef} simulado y sincronizado en WhatsApp y Pedidos Automáticos.`);
-  };
-
   // Action: Inspect generated dual JSON + HMAC-SHA256 headers
   const handleInspectPayload = async (order: WhatsAppOrderRecord) => {
     const payload = buildGastroLabOrderPayload(order, envConfig);
@@ -569,14 +484,6 @@ export const WhatsAppModule: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={handleSimulateIncomingOrder}
-            className="px-3.5 py-2 rounded-xl bg-[#4A5D23] hover:bg-[#3d4d1d] text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
-          >
-            <Plus className="w-4 h-4" />
-            Simular Pedido WA
-          </button>
           <button
             type="button"
             onClick={() => setIsConfigModalOpen(true)}

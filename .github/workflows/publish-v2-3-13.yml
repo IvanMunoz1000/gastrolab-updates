@@ -1,0 +1,72 @@
+name: Publish GASTROLAB 2.3.13 verified installers
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-v2-3-12.yml']
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      GH_TOKEN: ${{ github.token }}
+      WIN_ARTIFACT_URL: 'https://sdmntprcentralus.oaiusercontent.com/files/00000000-2c60-81f5-bf56-01a8da56c0ce/raw?se=2026-11-26T22%3A08%3A33Z&sp=r&sv=2026-06-06&sr=b&scid=7fcfa6f5-555d-5388-83e7-c6fe9d49eb6a&skoid=78501c7f-f65d-4e8d-9110-bed29e1beb41&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-26T10%3A46%3A04Z&ske=2026-11-27T10%3A46%3A04Z&sks=b&skv=2026-06-06&sig=KUvq0CH1Nc9OY4sL/MNhcyJHhYr9bbVxqtLQvhRVybQ%3D'
+      ANDROID_ARTIFACT_URL: 'https://sdmntprcentralus.oaiusercontent.com/files/00000000-8a48-81f5-8627-c64dd42de20d/raw?se=2026-11-26T22%3A08%3A26Z&sp=r&sv=2026-06-06&sr=b&scid=b74382b4-15bd-5c7d-93b4-ed1a6d5e6206&skoid=78501c7f-f65d-4e8d-9110-bed29e1beb41&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-26T10%3A46%3A04Z&ske=2026-11-27T10%3A46%3A04Z&sks=b&skv=2026-06-06&sig=wQKIt99rM2PJ%2B0H0%2BZP/OEc7K2diDoRqJ4d3CNWh/64%3D'
+      MAC_ARTIFACT_URL: 'https://sdmntprcentralus.oaiusercontent.com/files/00000000-4cd4-81f5-b35c-6027d96ff22e/raw?se=2026-11-26T22%3A08%3A47Z&sp=r&sv=2026-06-06&sr=b&scid=7461b889-38a1-5155-9aa1-a7c6360d9a45&skoid=78501c7f-f65d-4e8d-9110-bed29e1beb41&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-25T23%3A54%3A41Z&ske=2026-11-26T23%3A54%3A41Z&sks=b&skv=2026-06-06&sig=N0R89agtioYG/zKFretWkhicGK8UgM5wByzLIuMHkLw%3D'
+    steps:
+      - name: Download exact main SHA ba0c88c artifacts and verify ZIP hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p win android mac release
+          curl --fail --location --retry 4 --connect-timeout 20 --max-time 900 --silent --show-error "$WIN_ARTIFACT_URL" -o windows.zip
+          curl --fail --location --retry 4 --connect-timeout 20 --max-time 180 --silent --show-error "$ANDROID_ARTIFACT_URL" -o android.zip
+          curl --fail --location --retry 4 --connect-timeout 20 --max-time 900 --silent --show-error "$MAC_ARTIFACT_URL" -o macos.zip
+          echo '77876214d01a17d68e9cd5e508b2a81c8060f5f3f0bd443405f5ec5c6eeb287b  windows.zip' | sha256sum --check
+          echo '51671f5925aeb25c5234ba9155e6f494b4aee6c60ddde5f74933a1855e0a1e49  android.zip' | sha256sum --check
+          echo '203a09eecf01da572e1917b463ed32e03ed0b83d1756d279edd3a9b848ccd1df  macos.zip' | sha256sum --check
+          unzip -q windows.zip -d win
+          unzip -q android.zip -d android
+          unzip -q macos.zip -d mac
+          test -s win/GASTROLAB-2.3.13-x64.exe
+          test -s win/GASTROLAB-2.3.13-x64.exe.blockmap
+          test -s win/latest.yml
+          test -s android/GASTROLAB-2.3.13-Android.apk
+          test -s mac/GASTROLAB-2.3.13-x64.dmg
+          test -s mac/GASTROLAB-2.3.13-arm64.dmg
+      - name: Verify Windows release manifest and version integrity
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib, base64, re
+          exe=Path('win/GASTROLAB-2.3.13-x64.exe')
+          data=Path('win/latest.yml').read_text()
+          assert re.search(r'^version:\s*2\.3\.13\s*$',data,re.M)
+          assert exe.name in data
+          digest=base64.b64encode(hashlib.sha512(exe.read_bytes()).digest()).decode()
+          sums=re.findall(r'^\s*sha512:\s*(\S+)\s*$',data,re.M)
+          assert len(sums)>0 and all(v==digest for v in sums)
+          print('GASTROLAB_2_3_13_WINDOWS_MANIFEST_VERIFIED')
+          PY
+          cp win/GASTROLAB-2.3.13-x64.exe win/GASTROLAB-2.3.13-x64.exe.blockmap win/latest.yml release/
+          cp android/GASTROLAB-2.3.13-Android.apk release/
+          cp mac/GASTROLAB-2.3.13-x64.dmg mac/GASTROLAB-2.3.13-arm64.dmg release/
+          (cd release && sha256sum *.exe *.apk *.dmg > SHA256SUMS.txt)
+      - name: Publish complete release after all three archives verified
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag=v2.3.13
+          repo="$GITHUB_REPOSITORY"
+          if gh release view "$tag" --repo "$repo" >/dev/null 2>&1; then
+            test "$(gh release view "$tag" --repo "$repo" --json isDraft --jq '.isDraft')" = true || { echo "Cannot overwrite an existing public release"; exit 1; }
+          else
+            gh release create "$tag" --repo "$repo" --draft --title 'GASTROLAB POS 2.3.13' --notes 'Versión Windows 64 bits y Android firmada; macOS Intel/Apple Silicon sin firma ni notarización Apple (puede bloquearse por Gatekeeper). La web instalable PWA es la alternativa en iPhone/iPad: no se distribuye un IPA nativo. Corrige la recuperación automática de las seis mesas en restaurantes existentes y nuevos, respetando pedidos y planos personalizados. Pie del menú azul pizarra y retiro del panel de contingencia SRI, historial de copias Excel por módulo y mantenimiento compacto. Borrar sistema exige archivo externo cifrado con retención y permisos IAM de Firebase; sigue inhabilitado hasta cumplir esos requisitos. El Excel no contiene cuentas de Firebase Authentication ni claves privadas SRI. Validación de facturación SRI real requiere firma del contribuyente.'
+          fi
+          gh release upload "$tag" release/* --repo "$repo" --clobber
+          gh release view "$tag" --repo "$repo" --json assets --jq '.assets[].name' > actual.txt
+          for f in GASTROLAB-2.3.13-x64.exe GASTROLAB-2.3.13-x64.exe.blockmap latest.yml GASTROLAB-2.3.13-Android.apk GASTROLAB-2.3.13-x64.dmg GASTROLAB-2.3.13-arm64.dmg SHA256SUMS.txt; do grep -Fxq "$f" actual.txt; done
+          gh release edit "$tag" --repo "$repo" --draft=false --latest
+          echo GASTROLAB_2_3_13_RELEASE_PUBLISHED

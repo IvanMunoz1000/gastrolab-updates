@@ -1,0 +1,49 @@
+name: GASTROLAB full source backup (one-time)
+on:
+  push:
+    branches:
+      - archive/full-code-gastrolab-20261126
+permissions:
+  contents: read
+jobs:
+  export-full-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+          persist-credentials: true
+      - name: Export source, history, branches and tags
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p export
+          git fetch --force origin '+refs/heads/*:refs/remotes/origin/*' '+refs/tags/*:refs/tags/*'
+          git fetch origin '+refs/pull/*/head:refs/remotes/pull/*' || true
+          MAIN_SHA="$(git rev-parse origin/main)"
+          printf '%s\n' "$MAIN_SHA" > export/MAIN_COMMIT.txt
+          git for-each-ref --format='%(refname) %(objectname)' > export/ALL_REFS.txt
+          git ls-tree -rl "$MAIN_SHA" > export/MAIN_FILE_MANIFEST.txt
+          git rev-list --all --count > export/HISTORY_COMMIT_COUNT.txt
+          git bundle create export/FULL_HISTORY_ALL_REFS.bundle --all
+          git bundle verify export/FULL_HISTORY_ALL_REFS.bundle
+          git archive --format=tar --prefix=main/ "$MAIN_SHA" | gzip -9 > export/MAIN_SOURCE_EXACT.tar.gz
+          git checkout -f --detach "$MAIN_SHA"
+          if command -v git-lfs >/dev/null 2>&1 && [ -n "$(git lfs ls-files -n)" ]; then
+            git lfs fetch --all
+            git lfs checkout
+            tar -czf export/ALL_GIT_LFS_OBJECTS.tar.gz -C .git lfs/objects
+          fi
+          tar -czf export/MAIN_CHECKED_OUT_FILES.tar.gz --exclude=.git --exclude=export -C . .
+          (cd export && sha256sum *.bundle *.tar.gz > SHA256SUMS.txt)
+          printf '%s\n' "This archive includes the Git history, reachable refs, tags and the source at the captured main SHA." "No live Firebase or Render data/secrets are included." > export/README_BACKUP.txt
+      - name: Upload complete code snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: GASTROLAB-gastrolab-updates-COMPLETE-SOURCE-20261126
+          path: export/
+          retention-days: 7
+          if-no-files-found: error
+          compression-level: 0

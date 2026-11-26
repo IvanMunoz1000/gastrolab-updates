@@ -1,0 +1,31 @@
+name: Repair GASTROLAB update manifest
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Ensure current published stable release has latest.yml
+        shell: bash
+        run: |
+          set -euo pipefail
+          repo=IvanMunoz1000/gastrolab-updates
+          tag=v2.3.2
+          mkdir -p update-manifest
+          if gh release view "$tag" --repo "$repo" --json assets --jq '.assets[].name' | grep -Fxq latest.yml; then
+            echo 'latest.yml is already published'
+            exit 0
+          fi
+          gh release download "$tag" --repo "$repo" --pattern latest.3.yml --dir update-manifest
+          test -s update-manifest/latest.3.yml
+          grep -q 'GASTROLAB-2.3.2-x64.exe' update-manifest/latest.3.yml
+          cp update-manifest/latest.3.yml update-manifest/latest.yml
+          gh release upload "$tag" update-manifest/latest.yml --repo "$repo" --clobber
+          gh release view "$tag" --repo "$repo" --json assets --jq '.assets[].name' | grep -Fx latest.yml

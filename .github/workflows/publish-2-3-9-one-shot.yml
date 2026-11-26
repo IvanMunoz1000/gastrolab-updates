@@ -1,0 +1,61 @@
+name: Publish GASTROLAB 2.3.9 verified installers
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-2-3-9-one-shot.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+      WIN_ZIP_URL: 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-6418-820e-bb75-631186507d69/raw?se=2026-11-26T18%3A51%3A25Z&sp=r&sv=2026-06-06&sr=b&scid=6e56bb67-223c-56b6-a37e-e9a63efa7ff5&skoid=0a91ee30-885e-46c5-aa98-ae8c7359b1d8&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-26T10%3A47%3A09Z&ske=2026-11-27T10%3A47%3A09Z&sks=b&skv=2026-06-06&sig=rvATY8qSUq72Gfo8GIRlzpE6bf5BfLhs1eBW4BbB4Qg%3D'
+      ANDROID_ZIP_URL: 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-3c70-820e-a70b-959430a846e6/raw?se=2026-11-26T18%3A51%3A04Z&sp=r&sv=2026-06-06&sr=b&scid=0e699a87-71a7-524c-ae65-dad10b9e8467&skoid=0a91ee30-885e-46c5-aa98-ae8c7359b1d8&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-26T10%3A13%3A26Z&ske=2026-11-27T10%3A13%3A26Z&sks=b&skv=2026-06-06&sig=zfLO6wjv6qtefqGTIN1O1I6q6wYToXzJnWl2NZ2od98%3D'
+    steps:
+      - name: Download verified installers
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p win android
+          curl --fail --location --retry 3 --connect-timeout 20 --max-time 480 --silent --show-error "$WIN_ZIP_URL" -o win.zip
+          curl --fail --location --retry 3 --connect-timeout 20 --max-time 180 --silent --show-error "$ANDROID_ZIP_URL" -o android.zip
+          unzip -q win.zip -d win
+          unzip -q android.zip -d android
+          test -s win/GASTROLAB-2.3.9-x64.exe
+          test -s win/GASTROLAB-2.3.9-x64.exe.blockmap
+          test -s win/latest.yml
+          test -s android/GASTROLAB-2.3.9-Android.apk
+      - name: Verify Windows updater manifest integrity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib, base64, re
+          data=Path('win/latest.yml').read_text()
+          assert re.search(r'^version: 2\.3\.9\s*$',data,re.M)
+          assert 'GASTROLAB-2.3.9-x64.exe' in data
+          expected=base64.b64encode(hashlib.sha512(Path('win/GASTROLAB-2.3.9-x64.exe').read_bytes()).digest()).decode()
+          values=re.findall(r'^\s*sha512:\s*(\S+)\s*$',data,re.M)
+          assert len(values)>=1 and all(x==expected for x in values)
+          print('GASTROLAB_WINDOWS_SHA512_VERIFIED')
+          PY
+      - name: Publish complete release as one transaction
+        shell: bash
+        run: |
+          set -euo pipefail
+          repo="$GITHUB_REPOSITORY"
+          tag=v2.3.9
+          if gh release view "$tag" --repo "$repo" >/dev/null 2>&1; then
+            test "$(gh release view "$tag" --repo "$repo" --json isDraft --jq '.isDraft')" = true || { echo 'Release already public; refusing overwrite'; exit 1; }
+          else
+            gh release create "$tag" --repo "$repo" --draft --title 'GASTROLAB 2.3.9' --notes 'Corrección del diseño móvil de las pestañas General y Local, Impresoras y Facturación SRI. Instaladores verificados para Android y Windows. Las actualizaciones mantienen los datos locales existentes.'
+          fi
+          gh release upload "$tag" win/GASTROLAB-2.3.9-x64.exe win/GASTROLAB-2.3.9-x64.exe.blockmap win/latest.yml android/GASTROLAB-2.3.9-Android.apk --repo "$repo" --clobber
+          gh release view "$tag" --repo "$repo" --json assets --jq '.assets[].name' | tee assets.txt
+          for f in GASTROLAB-2.3.9-x64.exe GASTROLAB-2.3.9-x64.exe.blockmap latest.yml GASTROLAB-2.3.9-Android.apk; do grep -Fxq "$f" assets.txt; done
+          gh release edit "$tag" --repo "$repo" --draft=false --latest
+          echo 'GASTROLAB_2_3_9_PUBLISHED'

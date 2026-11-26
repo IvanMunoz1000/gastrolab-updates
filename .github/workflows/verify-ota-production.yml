@@ -1,4 +1,5 @@
 name: Verify GASTROLAB production OTA signature and delivery
+# Smoke test after native cache-safety 2.3.10 deployment
 on:
   push:
     branches: [main]

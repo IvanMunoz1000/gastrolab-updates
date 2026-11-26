@@ -28,9 +28,9 @@ jobs:
               const res = await fetch(url + '/manifest', { signal: AbortSignal.timeout(30000) });
               if(!res.ok) throw new Error('HTTP ' + res.status);
               const m = await res.json();
-              if(m.schema !== 1 || !/^2\\.3\\.10$/.test(m.version) ||
+              if(m.schema !== 1 || !/^2\.3\.10$/.test(m.version) ||
                   !/^[0-9a-f-]{36}$/i.test(m.buildId)) throw new Error('Unexpected OTA manifest');
-              const payload = Buffer.from('GASTROLAB-OTA-V1\\n'+m.version+'\\n'+m.buildId+'\\n'+m.sha256+'\\n'+m.bytes+'\\n');
+              const payload = Buffer.from('GASTROLAB-OTA-V1\n'+m.version+'\n'+m.buildId+'\n'+m.sha256+'\n'+m.bytes+'\n');
               const key = createPublicKey({key:Buffer.from(process.env.OTA_PUBLIC_DER, 'base64'),format:'der',type:'spki'});
               if(!verify('RSA-SHA256',payload,key,Buffer.from(m.signature,'base64'))) throw new Error('Signature invalid');
               const bundleRes = await fetch(url+'/bundle/'+m.buildId,{signal:AbortSignal.timeout(60000)});

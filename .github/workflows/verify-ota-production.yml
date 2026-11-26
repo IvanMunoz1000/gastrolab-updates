@@ -1,5 +1,5 @@
 name: Verify GASTROLAB production OTA signature and delivery
-# Smoke test after native cache-safety 2.3.10 deployment
+# Smoke test for the 2.3.11 six-tables repair via signed OTA
 on:
   push:
     branches: [main]
@@ -29,7 +29,7 @@ jobs:
               const res = await fetch(url + '/manifest', { signal: AbortSignal.timeout(30000) });
               if(!res.ok) throw new Error('HTTP ' + res.status);
               const m = await res.json();
-              if(m.schema !== 1 || !/^2\.3\.10$/.test(m.version) ||
+              if(m.schema !== 1 || !/^2\.3\.11$/.test(m.version) ||
                   !/^[0-9a-f-]{36}$/i.test(m.buildId)) throw new Error('Unexpected OTA manifest');
               const payload = Buffer.from('GASTROLAB-OTA-V1\n'+m.version+'\n'+m.buildId+'\n'+m.sha256+'\n'+m.bytes+'\n');
               const key = createPublicKey({key:Buffer.from(process.env.OTA_PUBLIC_DER, 'base64'),format:'der',type:'spki'});
@@ -40,6 +40,8 @@ jobs:
               if(blob.byteLength !== m.bytes || createHash('sha256').update(blob).digest('hex') !== m.sha256) throw new Error('Bundle SHA256 mismatch');
               const parsed=JSON.parse(gunzipSync(blob).toString('utf8'));
               const paths = new Set(parsed.files.map(f=>f.path));
+              const scripts = parsed.files.filter(f=>f.path.endsWith('.js')).map(f=>Buffer.from(f.data, 'base64').toString('utf8'));
+              if (!scripts.some(src=>src.includes('Reintentar mesas'))) throw new Error('Six-tables repair missing from production OTA');
               if(parsed.version!==m.version || parsed.buildId!==m.buildId ||
                  !paths.has('index.html') || !paths.has('app-version.json')) throw new Error('Missing OTA files');
               result={version:m.version,buildId:m.buildId,files:paths.size,bytes:blob.byteLength,signature:'RSA verified'};

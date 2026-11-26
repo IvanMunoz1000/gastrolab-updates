@@ -1,0 +1,31 @@
+name: GASTROLAB release assets archive (one-time)
+on:
+  push:
+    branches:
+      - archive/full-code-gastrolab-20261126
+permissions:
+  contents: read
+jobs:
+  export-release-assets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Download all current published release assets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets/v2.3.1 release-assets/v2.3.2
+          gh release download v2.3.1 -R "$GITHUB_REPOSITORY" -D release-assets/v2.3.1
+          gh release download v2.3.2 -R "$GITHUB_REPOSITORY" -D release-assets/v2.3.2
+          (cd release-assets && find . -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt)
+          test "$(find release-assets -type f | wc -l)" -eq 8
+      - name: Upload released Windows installers and manifests
+        uses: actions/upload-artifact@v4
+        with:
+          name: GASTROLAB-ALL-PUBLISHED-RELEASE-ASSETS-20261126
+          path: release-assets/
+          retention-days: 1
+          if-no-files-found: error
+          compression-level: 0

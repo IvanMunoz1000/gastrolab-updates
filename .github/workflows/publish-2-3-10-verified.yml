@@ -1,0 +1,65 @@
+name: Publish verified GASTROLAB 2.3.10 Windows and Android
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-2-3-10-verified.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+      WIN_ZIP_URL: 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-ac3c-820e-b3fa-c9e18748414a/raw?se=2026-11-26T20%3A06%3A20Z&sp=r&sv=2026-06-06&sr=b&scid=b72d40c0-e753-5757-9ebb-bdd76d082f01&skoid=0a91ee30-885e-46c5-aa98-ae8c7359b1d8&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-26T11%3A43%3A11Z&ske=2026-11-27T11%3A43%3A11Z&sks=b&skv=2026-06-06&sig=PERj6oxhnIWA7GMW6bWuIaAkX9dxXsmSPT2jp1zR/8w%3D'
+      ANDROID_ZIP_URL: 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-decc-820e-8f0d-928577de7a96/raw?se=2026-11-26T20%3A06%3A05Z&sp=r&sv=2026-06-06&sr=b&scid=e2a0c2bf-f6c6-51f7-aa7f-4b6daf1303e2&skoid=0a91ee30-885e-46c5-aa98-ae8c7359b1d8&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-26T08%3A53%3A52Z&ske=2026-11-27T08%3A53%3A52Z&sks=b&skv=2026-06-06&sig=fXprBR9mtbf1b3eNuX9MhHgOOZWSwbdppQJmBEN1Hck%3D'
+    steps:
+      - name: Download artifacts built from exact verified private main commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p win android
+          curl --fail --location --retry 3 --connect-timeout 20 --max-time 900 --silent --show-error "$WIN_ZIP_URL" -o win.zip
+          curl --fail --location --retry 3 --connect-timeout 20 --max-time 180 --silent --show-error "$ANDROID_ZIP_URL" -o android.zip
+          echo '074a325ffbd423c7d7e0260f68db5534d5306a6091124b7fa2a434eb20ae2cd4  win.zip' | sha256sum --check
+          echo '74d3082cae509e51f205445343b6bf207990d66ecea9dff6a099aa1d5c082613  android.zip' | sha256sum --check
+          unzip -q win.zip -d win
+          unzip -q android.zip -d android
+          test -s win/GASTROLAB-2.3.10-x64.exe
+          test -s win/GASTROLAB-2.3.10-x64.exe.blockmap
+          test -s win/latest.yml
+          test -s android/GASTROLAB-2.3.10-Android.apk
+          echo 'db3a4243730f3fb21bea5aaa395dfd75d63f380893413278c5d54b38848c23f4  win/GASTROLAB-2.3.10-x64.exe' | sha256sum --check
+          echo '16e7a72e72129190b1123c5d9413de70ea1134d66f4e84b3a70d464865c502e9  android/GASTROLAB-2.3.10-Android.apk' | sha256sum --check
+      - name: Verify update manifest matches the binary exactly
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib, base64, re
+          text = Path('win/latest.yml').read_text()
+          exe = Path('win/GASTROLAB-2.3.10-x64.exe')
+          assert re.search(r'^version:\s*2\.3\.10\s*$', text, re.M)
+          assert exe.name in text
+          expected = base64.b64encode(hashlib.sha512(exe.read_bytes()).digest()).decode()
+          values = re.findall(r'^\s*sha512:\s*(\S+)\s*$', text, re.M)
+          assert len(values) > 0 and all(value == expected for value in values)
+          print('GASTROLAB_2_3_10_WINDOWS_MANIFEST_VERIFIED')
+          PY
+      - name: Publish release only if all checks succeed
+        shell: bash
+        run: |
+          set -euo pipefail
+          repo="$GITHUB_REPOSITORY"
+          tag=v2.3.10
+          if gh release view "$tag" --repo "$repo" >/dev/null 2>&1; then
+            test "$(gh release view "$tag" --repo "$repo" --json isDraft --jq '.isDraft')" = true || { echo 'Refusing overwrite of an already public release'; exit 1; }
+          else
+            gh release create "$tag" --repo "$repo" --draft --title 'GASTROLAB POS 2.3.10' --notes 'Instaladores oficiales para Windows 64 bits y Android con código actualizado del repositorio privado: seguridad de licencias, diagnóstico fiscal SRI, conexión HTTPS, instaladores limpios y actualizaciones OTA de contenido firmadas. La emisión fiscal en producción requiere RUC, firma válida y configuración de credenciales y permisos en el servidor; no se garantiza autorización del SRI sin pruebas de contribuyente.'
+          fi
+          gh release upload "$tag" win/GASTROLAB-2.3.10-x64.exe win/GASTROLAB-2.3.10-x64.exe.blockmap win/latest.yml android/GASTROLAB-2.3.10-Android.apk --repo "$repo" --clobber
+          gh release view "$tag" --repo "$repo" --json assets --jq '.assets[].name' | tee published_assets.txt
+          for f in GASTROLAB-2.3.10-x64.exe GASTROLAB-2.3.10-x64.exe.blockmap latest.yml GASTROLAB-2.3.10-Android.apk; do grep -Fxq "$f" published_assets.txt; done
+          gh release edit "$tag" --repo "$repo" --draft=false --latest
+          echo GASTROLAB_2_3_10_PUBLISHED

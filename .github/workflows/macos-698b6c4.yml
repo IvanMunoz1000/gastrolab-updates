@@ -21,11 +21,11 @@ jobs:
           node-version: '24'
       - name: Verify and unpack the signed Windows installer
         env:
-          GH_TOKEN: ${{ github.token }}
+          INSTALLER_URL: ${{ secrets.GASTROLAB_RC_INSTALLER_READ_URL }}
         shell: bash
         run: |
           set -euo pipefail
-          gh api -H 'Accept: application/octet-stream' repos/IvanMunoz1000/gastrolab-updates/releases/assets/805054567 > installer.exe
+          curl --fail --silent --show-error --proto "=https" "$INSTALLER_URL" -o installer.exe
           echo '3f57c6c6f63d36ca7c970b8044379a714442fab3060811647bb1e7192cee67cd  installer.exe' | shasum -a 256 -c -
           tool=$(command -v 7zz || command -v 7z || (brew install sevenzip >&2 && command -v 7zz))
           "$tool" x -y -owindows installer.exe >/dev/null

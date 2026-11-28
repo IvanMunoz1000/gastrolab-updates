@@ -1,7 +1,7 @@
 name: Build and smoke-test Gastrolab macOS verification installers
 on:
   push:
-    branches: [verification/macos-698b6c4]
+    branches: [verification/macos-gastrolab-oficial]
     paths: ['.github/workflows/macos-698b6c4.yml']
 permissions:
   contents: read
@@ -19,12 +19,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Verify and unpack the published Gastrolab desktop assets
+      - name: Verify and unpack the signed Windows installer
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          curl -fsSL -o installer.exe https://github.com/IvanMunoz1000/gastrolab-updates/releases/download/v2.3.15-operativo-698b6c4/GASTROLAB-2.3.15-x64.exe
-          echo 'cf49a7c1bc463e6d057e4acbd17d22377c3a1989ff572dab50ebfe7baec4426d  installer.exe' | shasum -a 256 -c -
+          gh api -H 'Accept: application/octet-stream' repos/IvanMunoz1000/gastrolab-updates/releases/assets/805054567 > installer.exe
+          echo '3f57c6c6f63d36ca7c970b8044379a714442fab3060811647bb1e7192cee67cd  installer.exe' | shasum -a 256 -c -
           tool=$(command -v 7zz || command -v 7z || (brew install sevenzip >&2 && command -v 7zz))
           "$tool" x -y -owindows installer.exe >/dev/null
           "$tool" x -y -onative "$(find windows -name app-64.7z -print -quit)" resources/app.asar >/dev/null
